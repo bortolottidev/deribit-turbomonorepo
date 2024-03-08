@@ -1,8 +1,7 @@
+import React, { useMemo, useCallback } from "react";
 import Image from "next/image";
-import { Card } from "@repo/ui/card";
-import { Code } from "@repo/ui/code";
 import styles from "./page.module.css";
-import { Button } from "@repo/ui/button";
+import Header from "./components/header";
 
 function Gradient({
   conic,
@@ -27,60 +26,10 @@ function Gradient({
   );
 }
 
-const LINKS = [
-  {
-    title: "Docs",
-    href: "https://turbo.build/repo/docs",
-    description: "Find in-depth information about Turborepo features and API.",
-  },
-  {
-    title: "Learn",
-    href: "https://turbo.build/repo/docs/handbook",
-    description: "Learn more about monorepos with our handbook.",
-  },
-  {
-    title: "Templates",
-    href: "https://turbo.build/repo/docs/getting-started/from-example",
-    description: "Choose from over 15 examples and deploy with a single click.",
-  },
-  {
-    title: "Deploy",
-    href: "https://vercel.com/new",
-    description:
-      "Instantly deploy your Turborepo to a shareable URL with Vercel.",
-  },
-];
-
-export default function Page(): JSX.Element {
+export default async function Page(): Promise<JSX.Element> {
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          examples/basic&nbsp;
-          <Code className={styles.code}>web</Code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-turbo&utm_medium=basic&utm_campaign=create-turbo"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            By{" "}
-            <Image
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              height={24}
-              priority
-              src="/vercel.svg"
-              width={100}
-            />
-          </a>
-        </div>
-      </div>
-
-      <Button appName="web" className={styles.button}>
-        Click me!
-      </Button>
+      <Header />
 
       <div className={styles.hero}>
         <div className={styles.heroContent}>
@@ -129,15 +78,13 @@ export default function Page(): JSX.Element {
               <path d="M476.899 0.261719C460.341 0.261719 448.401 10.6185 448.401 24.7354C448.401 38.8523 460.341 49.2091 476.899 49.2091C493.456 49.2091 505.33 38.8523 505.33 24.7354C505.33 10.6185 493.456 0.261719 476.899 0.261719ZM476.899 11.4761C485.606 11.4761 492.137 16.6215 492.137 24.7354C492.137 32.8493 485.606 37.9947 476.899 37.9947C468.191 37.9947 461.66 32.8493 461.66 24.7354C461.66 16.6215 468.191 11.4761 476.899 11.4761Z" />
             </svg>
           </div>
+          {/* <ul> */}
+          {/*   {futures.map((f: any) => ( */}
+          {/*     <li>{JSON.stringify(f)}</li> */}
+          {/*   ))} */}
+          {/* </ul> */}
+          {/* {({ height, width }) => <Chart width={width} height={height} />} */}
         </div>
-      </div>
-
-      <div className={styles.grid}>
-        {LINKS.map(({ title, href, description }) => (
-          <Card className={styles.card} href={href} key={title} title={title}>
-            {description}
-          </Card>
-        ))}
       </div>
     </main>
   );

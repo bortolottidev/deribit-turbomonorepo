@@ -94,7 +94,9 @@
   border-radius: var(--border-radius);
   background: rgba(var(--card-rgb), 0);
   border: 1px solid rgba(var(--card-border-rgb), 0);
-  transition: background 200ms, border 200ms;
+  transition:
+    background 200ms,
+    border 200ms;
 }
 
 .card span {
@@ -332,4 +334,27 @@
 .button:hover,
 .button:focus {
   background-color: #e5e4e2;
+}
+
+.table {
+  border-collapse: collapse;
+  border: 1px solid dimgray;
+}
+
+.tbody tr:nth-child(even) {
+  background: #3b3b3b85;
+}
+.tbody tr:hover {
+  background: #b018187d;
+}
+
+.th {
+  background: linear-gradient(#777, #444);
+  padding: 10px;
+  border-bottom: 1px solid dimgray;
+}
+
+.td {
+  padding: 10px;
+  text-align: center;
 }

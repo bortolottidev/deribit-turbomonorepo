@@ -1,0 +1,47 @@
+const positionTest = {
+  _id: "23e232322",
+  insertedAt: 1707619535222,
+  updatedAt: 1707619535222,
+  size: -200,
+  averagePrice: 44605,
+  totalPL: -0.000446958,
+  floatinPL: null,
+  direction: "sell",
+  instrument: "BTC-28JUN24",
+};
+
+export type Position = typeof positionTest;
+
+const tradeTest = {
+  _id: "282119657",
+  insertedAt: 1707956131749,
+  updatedAt: 1707956131749,
+  profit_as_cashflow: false,
+  price_currency: "USD",
+  side: "open sell",
+  user_role: "taker",
+  trade_id: "282119657",
+  interest_pl: 0,
+  user_seq: 1706660347736588,
+  equity: 0.00605043,
+  fee_balance: 0,
+  instrument_name: "BTC-28JUN24",
+  order_id: "65065161381",
+  mark_price: 44605.38,
+  index_price: 42908.61,
+  cashflow: 0,
+  commission: 0.00000224,
+  amount: 200,
+  username: "premium_catcher_bot",
+  user_id: 312108,
+  price: 44605,
+  change: -0.00000224,
+  currency: "BTC",
+  balance: 0.00605047,
+  type: "trade",
+  timestamp: 1706660347725,
+  position: -200,
+  info: "Source: 'api:premium_catcher'",
+  id: 591897855,
+};
+export type Trade = typeof tradeTest;
