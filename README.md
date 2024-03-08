@@ -1,14 +1,6 @@
-# Turborepo starter
+# Cash&Carry Turborepo
 
-This is an official starter Turborepo.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
+This is the cash&carry mono(turbo)repo.
 
 ## What's inside?
 
@@ -21,8 +13,6 @@ This Turborepo includes the following packages/apps:
 - `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
 - `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
 ### Utilities
 
