@@ -1,3 +1,5 @@
+import { DB_NAME, collections } from "../plugins/mongodb.js";
+
 const mongoCollectionApi = async (fastify, opts) => {
   const getPositionsOptions = {
     schema: {
@@ -57,6 +59,37 @@ const mongoCollectionApi = async (fastify, opts) => {
       }
     });
   }
+
+  fastify.get("/funding-collected", async function (req, reply) {
+    const collection = this.mongo.client
+      .db(DB_NAME)
+      .collection(collections.SETTLEMENT_LOG);
+
+    const aggregators = [
+      {
+        $group: {
+          _id: "aggregated_sum_data",
+          count: { $sum: 1 },
+          interestPlSum: {
+            $sum: "$interest_pl",
+          },
+          totalInterestPlSum: {
+            $sum: "$total_interest_pl",
+          },
+          cashFlowSum: {
+            $sum: "$cashflow",
+          },
+        },
+      },
+    ];
+
+    try {
+      return await collection.aggregate(aggregators).next();
+    } catch (err) {
+      console.error(err);
+      return err;
+    }
+  });
 };
 
 export default mongoCollectionApi;
