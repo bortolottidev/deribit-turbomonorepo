@@ -19,11 +19,14 @@ export default function Header(): JSX.Element {
       </div>
       <div>
         <Link href={deribitMetrics} target="_blank">
-          To the metrics!
+          Metrics!
         </Link>
       </div>
       <div>
-        <Link href="chart">To the chart!</Link>
+        <Link href="equity-chart">My money</Link>
+      </div>
+      <div>
+        <Link href="data-chart">To the data!</Link>
       </div>
       <div>
         <Link href="tables">To the tables!</Link>

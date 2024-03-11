@@ -12,18 +12,31 @@ import {
 } from "@visx/xychart";
 import { curveCardinal } from "@visx/curve";
 import { timeFormat } from "@visx/vendor/d3-time-format";
+import { ReactNode } from "react";
+import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 
 type ChartProps = {
   fieldToShow: string;
-  keys: string[];
+  // keys: string[];
   data: AccountChartData[];
   width: number;
   height: number;
 };
 
-const formatPercentGain = (tooltipData: TooltipData, startValue: number) => {
-  const username = tooltipData.nearestDatum?.key;
-  const currentEquity = tooltipData.nearestDatum?.datum[username];
+const formatPercentGain = (
+  tooltipData: TooltipData<{ [key: string]: number }> | undefined,
+  startValue: number | undefined,
+): string => {
+  const username: string | undefined = tooltipData?.nearestDatum?.key;
+  if (!username || !startValue) {
+    return "N/A";
+  }
+
+  const currentEquity = tooltipData?.nearestDatum?.datum[username];
+  if (!currentEquity) {
+    return "N/A";
+  }
+
   const percent = (currentEquity - startValue) / startValue;
   return Number(percent * 100).toFixed(2);
 };
@@ -33,8 +46,33 @@ const formatDate = (timestamp: number) => {
   return timeFormat("%d/%m/%y, %H:%M")(date);
 };
 
+const renderTooltipFn =
+  (
+    startEquityValue: number | undefined,
+    accessors: { xAccessor: Function; yAccessor: Function },
+  ) =>
+  ({
+    tooltipData,
+    colorScale,
+  }: RenderTooltipParams<{ [key: string]: number }>): ReactNode => (
+    <div>
+      <div
+        style={{
+          marginBottom: 5,
+          // @ts-ignore -- wtf
+          color: colorScale(tooltipData?.nearestDatum?.key),
+        }}
+      >
+        {tooltipData?.nearestDatum?.key} (
+        {formatPercentGain(tooltipData, startEquityValue)}%)
+      </div>
+      {Math.round(accessors.yAccessor(tooltipData?.nearestDatum?.datum))}$ @{" "}
+      {formatDate(accessors.xAccessor(tooltipData?.nearestDatum?.datum))}
+    </div>
+  );
+
 function Chart({ height, width, data, fieldToShow }: ChartProps) {
-  if (width < 10) {
+  if (width < 10 || data.length < 1) {
     return;
   }
 
@@ -42,8 +80,12 @@ function Chart({ height, width, data, fieldToShow }: ChartProps) {
     xAccessor: (d: AccountChartData) => d.insertedAt,
     yAccessor: (d: AccountChartData) => d[fieldToShow],
   };
+  const anotherAccessors = {
+    xAccessor: (d: AccountChartData) => d.insertedAt,
+    yAccessor: (d: AccountChartData) => 1,
+  };
 
-  const startEquityValue = data[0][fieldToShow];
+  const startEquityValue = data[0]![fieldToShow];
 
   return (
     <XYChart
@@ -77,21 +119,7 @@ function Chart({ height, width, data, fieldToShow }: ChartProps) {
         snapTooltipToDatumY
         showVerticalCrosshair
         showSeriesGlyphs
-        renderTooltip={({ tooltipData, colorScale }) => (
-          <div>
-            <div
-              style={{
-                marginBottom: 5,
-                color: colorScale(tooltipData.nearestDatum.key),
-              }}
-            >
-              {tooltipData.nearestDatum.key} (
-              {formatPercentGain(tooltipData, startEquityValue)}%)
-            </div>
-            {Math.round(accessors.yAccessor(tooltipData.nearestDatum.datum))}$ @{" "}
-            {formatDate(accessors.xAccessor(tooltipData.nearestDatum.datum))}
-          </div>
-        )}
+        renderTooltip={renderTooltipFn(startEquityValue, accessors)}
       />
     </XYChart>
   );
@@ -106,13 +134,14 @@ export default function AccountsGroupChartHOF({
   data,
   username,
 }: {
-  data: Account[];
+  data: AccountChartData[];
   username: "sum" | string;
 }) {
   return (
     <ParentSize>
       {({ width, height }) => (
         <Chart
+          key={username}
           fieldToShow={username}
           data={data}
           width={width}

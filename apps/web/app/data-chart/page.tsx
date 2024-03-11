@@ -1,6 +1,5 @@
 import ThresholdChart from "./threshold-chart";
 import AreaChart from "./area-chart";
-import AccountChart from "./account-chart";
 import {
   AccountSummaryData,
   EnrichedAccountSummaryData,
@@ -14,29 +13,19 @@ import {
 import Header from "../components/header";
 import styles from "../page.module.css";
 import { Position, Trade } from "../../types/trade";
-import { getArrayAccountChartData } from "./helper";
-import { Account } from "../../types/account";
 
 async function getFutures() {
-  const entities = [
-    "future",
-    "account",
-    "account-summary",
-    "position",
-    "trade",
-  ] as const;
+  const entities = ["future", "account-summary", "position", "trade"] as const;
   const fetchedData: {
     future: Future[];
     ["account-summary"]: AccountSummaryData[];
     position: Position[];
     trade: Trade[];
-    account: Account[];
   } = {
     future: [],
     position: [],
     trade: [],
     ["account-summary"]: [],
-    account: [],
   };
   for (const entity of entities) {
     const res = await fetch("http://localhost:3010/" + entity);
@@ -134,34 +123,6 @@ export default async function Page(): Promise<JSX.Element> {
     acc.all = perpetuals;
   }
 
-  const [accountsData, usernames] = getArrayAccountChartData(data.account);
-
-  const height = "50%";
-  const width = "calc(50% - 10px)";
-  return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100%",
-        display: "flex",
-        gap: 20,
-        padding: 20,
-        flexWrap: "wrap",
-      }}
-    >
-      <div style={{ height, width }}>
-        <h2>Equity</h2>
-        <AccountChart data={accountsData} username={"sum"} />
-      </div>
-      {usernames.map((username) => (
-        <div style={{ height, width }}>
-          <h2>{username}</h2>
-          <AccountChart data={accountsData} username={username} />
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <main className={styles.main}>
       <Header />
@@ -207,12 +168,12 @@ export default async function Page(): Promise<JSX.Element> {
             .map((spread) => (
               <>
                 <ThresholdChart
-                  key={spread[0]?.instrument}
+                  key={"percent-" + spread[0]?.instrument}
                   data={spread}
                   type="%"
                 />
                 <ThresholdChart
-                  key={spread[0]?.instrument}
+                  key={"premium-" + spread[0]?.instrument}
                   data={spread}
                   trades={data.position}
                   type="premium"

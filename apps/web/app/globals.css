@@ -20,6 +20,8 @@
     #a853ba 180deg,
     #e92a67 360deg
   );
+
+  --div-border-rbg: 105, 105, 105;
 }
 
 * {
@@ -47,4 +49,16 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.row {
+  display: flex;
+}
+
+.gap-2 {
+  gap: 2rem;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
 }

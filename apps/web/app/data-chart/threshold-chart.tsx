@@ -129,7 +129,7 @@ function Chart(props: ThresholdChartProps) {
               id={`${Math.random()}`}
               data={data}
               x={(d) => dateScale(date(d)) ?? 0}
-              y0={(_) => futureSpreadPremiumScale(0)}
+              y0={() => futureSpreadPremiumScale(0)}
               y1={(d) => futureSpreadPremiumScale(getPremiumSpreadUsd(d)) ?? 0}
               clipAboveTo={0}
               clipBelowTo={yMax}
@@ -269,8 +269,7 @@ function Chart(props: ThresholdChartProps) {
 }
 
 export default function ThresholdChartHOC(props: ThresholdLayoutProps) {
-  const { margin = defaultMargin, data, type } = props;
-  const trades: Trade[] = type === "premium" ? props.trades : [];
+  const { margin = defaultMargin, data, trades, type } = props;
   return (
     <ParentSize>
       {({ width, height }) => (

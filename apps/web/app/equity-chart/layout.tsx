@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Chart Cash&Carry",
-  description: "Enjoy cash&carry chart",
+  title: "Equity Cash&Carry",
+  description: "Enjoy cash&carry equity chart",
 };
 
 export default function ChartLayout({

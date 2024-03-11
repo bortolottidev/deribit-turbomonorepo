@@ -52,7 +52,7 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
       showTooltip,
       hideTooltip,
       tooltipData,
-      tooltipTop = 0,
+      // tooltipTop = 0,
       tooltipLeft = 0,
       data,
       type,

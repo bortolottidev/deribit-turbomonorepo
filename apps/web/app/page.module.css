@@ -338,7 +338,7 @@
 
 .table {
   border-collapse: collapse;
-  border: 1px solid dimgray;
+  border: 1px solid rgb(var(--div-border-rbg));
 }
 
 .tbody tr:nth-child(even) {
@@ -351,10 +351,17 @@
 .th {
   background: linear-gradient(#777, #444);
   padding: 10px;
-  border-bottom: 1px solid dimgray;
+  border-bottom: 1px solid rgb(var(--div-border-rbg));
 }
 
 .td {
   padding: 10px;
   text-align: center;
+}
+
+.dataDiv {
+  min-width: 300px;
+  padding: 2rem;
+  border: 2px solid rgb(var(--div-border-rbg));
+  border-radius: var(--border-radius);
 }

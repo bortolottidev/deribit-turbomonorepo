@@ -31,6 +31,7 @@ async function getData() {
   const fetchedData: {
     position: Position[];
     trade: Trade[];
+    fundingCollected: unknown;
   } = {
     trade: [],
     position: [],
@@ -43,6 +44,13 @@ async function getData() {
     }
     fetchedData[entity] = await res.json();
   }
+  const fundingCollected = await fetch(
+    "http://localhost:3010/funding-collected",
+  );
+  if (!fundingCollected.ok) {
+    throw new Error("Failed to fetch funding");
+  }
+  fetchedData.fundingCollected = await fundingCollected.json();
 
   return fetchedData;
 }
@@ -67,6 +75,16 @@ export default async function Page(): Promise<JSX.Element> {
             </div>
           </div>
           <Gradient className={styles.backgroundGradient} conic />
+          <div className="row gap-2">
+            <div className={styles.dataDiv}>
+              <h3 className="mb-1">Funding Collected</h3>
+              {data.fundingCollected.totalInterestPlSum} ₿
+            </div>
+            <div className={styles.dataDiv}>
+              <h3 className="mb-1">Days</h3>
+              {data.fundingCollected.count}
+            </div>
+          </div>
           <table className={styles.table}>
             <thead>
               <tr className={styles.headerRow}>
@@ -93,8 +111,9 @@ export default async function Page(): Promise<JSX.Element> {
                   side,
                   position,
                   info,
+                  id,
                 }) => (
-                  <tr>
+                  <tr key={id}>
                     <td className={styles.td}>
                       {new Date(insertedAt).toLocaleString()}
                     </td>
