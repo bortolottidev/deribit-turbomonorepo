@@ -4,7 +4,12 @@ import { AccountChartData } from "./account-chart";
 type Timestamp = number;
 type Username = string;
 type UsernameEquityUsd = number;
-type UsernameAccumulator = { [username: Username]: UsernameEquityUsd };
+type UsernameAccumulator = {
+  [username: Username]: {
+    equityUsd: UsernameEquityUsd;
+    maintenanceMarginPercent: number;
+  };
+};
 
 const insertedAtAscCompareFn = (
   a: AccountChartData,
@@ -16,13 +21,13 @@ export const getArrayAccountChartData = (
 ): [AccountChartData[], Username[]] => {
   const usernames = new Set<Username>();
   const accountGroups = accounts.reduce<Record<Timestamp, UsernameAccumulator>>(
-    (acc, { insertedAt, username, equityUsd }) => {
+    (acc, { insertedAt, username, equityUsd, maintenanceMarginPercent }) => {
       usernames.add(username);
       if (!acc[insertedAt]) {
         acc[insertedAt] = {};
       }
 
-      acc[insertedAt]![username] = equityUsd;
+      acc[insertedAt]![username] = { equityUsd, maintenanceMarginPercent };
       return acc;
     },
     {},
@@ -34,7 +39,7 @@ export const getArrayAccountChartData = (
         insertedAt: Number(insertedAt),
         sum: [...usernames].reduce<UsernameEquityUsd>(
           //@ts-ignore - wtf?
-          (acc, current) => acc + accounts[current],
+          (acc, current) => acc + accounts[current]?.equityUsd,
           0,
         ),
         ...accounts,

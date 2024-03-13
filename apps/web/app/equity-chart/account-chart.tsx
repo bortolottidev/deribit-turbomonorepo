@@ -21,18 +21,19 @@ type ChartProps = {
   data: AccountChartData[];
   width: number;
   height: number;
-};
+} & Pick<Props, "type">;
 
 const formatPercentGain = (
   tooltipData: TooltipData<{ [key: string]: number }> | undefined,
   startValue: number | undefined,
+  readCurrentValueFn: Function,
 ): string => {
   const username: string | undefined = tooltipData?.nearestDatum?.key;
   if (!username || !startValue) {
     return "N/A";
   }
 
-  const currentEquity = tooltipData?.nearestDatum?.datum[username];
+  const currentEquity = readCurrentValueFn(tooltipData?.nearestDatum?.datum);
   if (!currentEquity) {
     return "N/A";
   }
@@ -63,36 +64,78 @@ const renderTooltipFn =
           color: colorScale(tooltipData?.nearestDatum?.key),
         }}
       >
-        {tooltipData?.nearestDatum?.key} (
-        {formatPercentGain(tooltipData, startEquityValue)}%)
+        Equity (
+        {formatPercentGain(tooltipData, startEquityValue, accessors.yAccessor)}
+        %)
       </div>
       {Math.round(accessors.yAccessor(tooltipData?.nearestDatum?.datum))}$ @{" "}
       {formatDate(accessors.xAccessor(tooltipData?.nearestDatum?.datum))}
     </div>
   );
 
-function Chart({ height, width, data, fieldToShow }: ChartProps) {
+const renderTooltipMarginFn =
+  (accessors: { xAccessor: Function; yAccessor: Function }) =>
+  ({
+    tooltipData,
+    colorScale,
+  }: RenderTooltipParams<{ [key: string]: number }>): ReactNode => (
+    <div>
+      <div
+        style={{
+          marginBottom: 5,
+          // @ts-ignore -- wtf
+          color: colorScale(tooltipData?.nearestDatum?.key),
+        }}
+      >
+        Maintenance Margin
+      </div>
+      {Number(accessors.yAccessor(tooltipData?.nearestDatum?.datum)).toFixed(2)}
+      % @ {formatDate(accessors.xAccessor(tooltipData?.nearestDatum?.datum))}
+    </div>
+  );
+
+function Chart({ height, type, width, data, fieldToShow }: ChartProps) {
   if (width < 10 || data.length < 1) {
     return;
   }
 
-  const accessors = {
+  const equityAccessors = {
     xAccessor: (d: AccountChartData) => d.insertedAt,
-    yAccessor: (d: AccountChartData) => d[fieldToShow],
+    yAccessor: (d: AccountChartData) =>
+      fieldToShow === "sum" ? d[fieldToShow] : d[fieldToShow].equityUsd,
   };
-  const anotherAccessors = {
+  const marginAccessors = {
     xAccessor: (d: AccountChartData) => d.insertedAt,
-    yAccessor: (d: AccountChartData) => 1,
+    yAccessor: (d: AccountChartData) => d[fieldToShow].maintenanceMarginPercent,
   };
 
-  const startEquityValue = data[0]![fieldToShow];
+  const startEquityValue = equityAccessors.yAccessor(data[0]);
+
+  const areaBuilder = () =>
+    type === "equity" ? (
+      <AreaSeries
+        dataKey={fieldToShow}
+        data={data}
+        {...equityAccessors}
+        fillOpacity={0.4}
+        curve={curveCardinal}
+      />
+    ) : (
+      <AreaSeries
+        dataKey={fieldToShow}
+        data={data}
+        {...marginAccessors}
+        fillOpacity={0.4}
+        curve={curveCardinal}
+      />
+    );
 
   return (
     <XYChart
       height={height}
       width={width}
       xScale={{ type: "band" }}
-      yScale={{ type: "log" }}
+      yScale={{ type: type === "margin" ? "linear" : "log" }}
     >
       <AnimatedAxis
         animationTrajectory="outside"
@@ -106,37 +149,44 @@ function Chart({ height, width, data, fieldToShow }: ChartProps) {
         orientation="left"
         numTicks={4}
       />
+      {areaBuilder()}
       <AnimatedGrid columns={false} numTicks={4} />
-      <AreaSeries
-        dataKey={fieldToShow}
-        data={data}
-        {...accessors}
-        fillOpacity={0.4}
-        curve={curveCardinal}
-      />
       <Tooltip
         snapTooltipToDatumX
         snapTooltipToDatumY
         showVerticalCrosshair
         showSeriesGlyphs
-        renderTooltip={renderTooltipFn(startEquityValue, accessors)}
+        renderTooltip={
+          type === "equity"
+            ? renderTooltipFn(startEquityValue, equityAccessors)
+            : renderTooltipMarginFn(marginAccessors)
+        }
       />
     </XYChart>
   );
 }
 
-export type AccountChartData = Pick<Account, "insertedAt"> &
+export type AccountChartData = Pick<
+  Account,
+  "insertedAt" | "maintenanceMarginPercent" | "initialMarginPercent"
+> &
   Record<string, number> & {
     sum: number;
   };
 
-export default function AccountsGroupChartHOF({
-  data,
-  username,
-}: {
-  data: AccountChartData[];
-  username: "sum" | string;
-}) {
+type Props =
+  | {
+      data: AccountChartData[];
+      type: "margin";
+      username: string;
+    }
+  | {
+      data: AccountChartData[];
+      type: "equity";
+      username: "sum" | string;
+    };
+
+export default function AccountsGroupChartHOF({ data, username, type }: Props) {
   return (
     <ParentSize>
       {({ width, height }) => (
@@ -146,6 +196,7 @@ export default function AccountsGroupChartHOF({
           data={data}
           width={width}
           height={height}
+          type={type}
         />
       )}
     </ParentSize>

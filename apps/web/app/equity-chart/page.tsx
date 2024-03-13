@@ -1,6 +1,8 @@
 import AccountChart from "./account-chart";
+import styles from "../page.module.css";
 import { getArrayAccountChartData } from "./helper";
 import { Account } from "../../types/account";
+import Header from "../components/header";
 
 async function getFutures() {
   const entities = ["account"] as const;
@@ -28,27 +30,69 @@ export default async function Page(): Promise<JSX.Element> {
 
   const height = "50%";
   const width = "calc(50% - 10px)";
+  const titleStyle = {
+    textAlign: "center",
+    margin: "3rem",
+  };
   return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100%",
-        display: "flex",
-        gap: 20,
-        padding: 20,
-        flexWrap: "wrap",
-      }}
-    >
-      <div style={{ height, width }}>
-        <h2>Equity</h2>
-        <AccountChart data={accountsData} username={"sum"} />
-      </div>
-      {usernames.map((username) => (
-        <div style={{ height, width }} key={username}>
-          <h2>{username}</h2>
-          <AccountChart data={accountsData} username={username} />
+    <main className={styles.main}>
+      <Header />
+      <div
+        style={{
+          height: "100vh",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+        }}
+      >
+        <h1 style={titleStyle}> Money </h1>
+        <div
+          style={{
+            height: "100vh",
+            width: "100%",
+            display: "flex",
+            gap: 20,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ height, width }}>
+            <h2>Equity</h2>
+            <AccountChart type="equity" data={accountsData} username={"sum"} />
+          </div>
+          {usernames.map((username) => (
+            <div style={{ height, width }} key={username + "-equity"}>
+              <h2>{username}</h2>
+              <AccountChart
+                data={accountsData}
+                type="equity"
+                username={username}
+              />
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+        <h1 style={titleStyle}> Margin </h1>
+        <div
+          style={{
+            height: "100vh",
+            width: "100%",
+            display: "flex",
+            gap: 20,
+            flexWrap: "wrap",
+          }}
+        >
+          {usernames.map((username) => (
+            <div style={{ height, width }} key={username + "-margin"}>
+              <h2>{username}</h2>
+              <AccountChart
+                data={accountsData}
+                type="margin"
+                username={username}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
   );
 }
