@@ -2,9 +2,9 @@
 
 import { useMemo, useCallback } from "react";
 import { AreaClosed, Line, Bar, LinePath } from "@visx/shape";
-import { curveBasis, curveMonotoneX, curveNatural } from "@visx/curve";
+import { curveBasis, curveMonotoneX } from "@visx/curve";
 import { GridRows, GridColumns } from "@visx/grid";
-import { scaleTime, scaleLinear, scaleRadial } from "@visx/scale";
+import { scaleTime, scaleRadial } from "@visx/scale";
 import {
   withTooltip,
   Tooltip,
@@ -16,16 +16,9 @@ import { localPoint } from "@visx/event";
 import { LinearGradient } from "@visx/gradient";
 import { max, extent, min } from "@visx/vendor/d3-array";
 import { ParentSize } from "@visx/responsive";
-import { EnrichedAccountSummaryData } from "../../types/account-summary";
-import { AreaChartType, AreaProps } from "../../types/chart";
-import {
-  bisectDate,
-  getDate,
-  getEquityUsdValue,
-  getEquityValue,
-  getMargin,
-  formatDate,
-} from "./helper";
+import { AreaProps } from "../../types/chart";
+import { bisectDate, getDate, formatDate, getFundingValue } from "./helper";
+import { FundingRate } from "../../types/funding-rate";
 
 export const background = "#3b6978";
 export const background2 = "#204051";
@@ -38,10 +31,7 @@ const tooltipStyles = {
   color: "white",
 };
 
-type TooltipProps = EnrichedAccountSummaryData & {
-  tooltipManteinanceMargin: number;
-  tooltipEquityUsd: number;
-};
+type TooltipProps = FundingRate;
 
 const Chart = withTooltip<AreaProps, TooltipProps>(
   (props: AreaProps & WithTooltipProvidedProps<TooltipProps>) => {
@@ -52,13 +42,10 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
       showTooltip,
       hideTooltip,
       tooltipData,
-      // tooltipTop = 0,
+      tooltipTop = 0,
       tooltipLeft = 0,
       data,
-      type,
     } = props;
-    const { tooltipManteinanceMargin = 0, tooltipEquityUsd = 0 } =
-      tooltipData || {};
     if (width < 10) return null;
 
     // bounds
@@ -74,32 +61,14 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
         }),
       [innerWidth, margin.left],
     );
-    const equityScale = useMemo(
-      () =>
-        scaleLinear({
-          range: [innerHeight + margin.top, margin.top],
-          domain: [0, (max(data, getEquityValue) || 0) * 1.5],
-          nice: true,
-        }),
-      [innerHeight, margin.top],
-    );
-    const equityUsdScale = useMemo(
+    const fundingScale = useMemo(
       () =>
         scaleRadial({
           range: [innerHeight + margin.top, margin.top],
           domain: [
-            (min(data, getEquityUsdValue) || 0) * 0.95,
-            (max(data, getEquityUsdValue) || 0) * 1.02,
+            (min(data, getFundingValue) || 0) * 0.95,
+            (max(data, getFundingValue) || 0) * 1.02,
           ],
-          nice: true,
-        }),
-      [innerHeight, margin.top],
-    );
-    const marginScale = useMemo(
-      () =>
-        scaleLinear({
-          range: [innerHeight + margin.top, margin.top],
-          domain: [0, 100],
           nice: true,
         }),
       [innerHeight, margin.top],
@@ -130,141 +99,13 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
               : d0;
         }
         showTooltip({
-          tooltipData: {
-            tooltipManteinanceMargin: marginScale(getMargin(d)),
-            tooltipEquityUsd: equityUsdScale(getEquityUsdValue(d)),
-            ...d,
-          },
+          tooltipData: d,
           tooltipLeft: x,
-          tooltipTop: equityScale(getEquityValue(d)),
+          tooltipTop: fundingScale(getFundingValue(d)),
         });
       },
-      [showTooltip, equityScale, dateScale, marginScale],
+      [showTooltip, fundingScale, dateScale],
     );
-
-    if (type === "margin") {
-      return (
-        <div>
-          <svg width={width} height={height}>
-            <rect
-              x={0}
-              y={0}
-              width={width}
-              height={height}
-              fill="url(#area-background-gradient)"
-              rx={14}
-            />
-            <LinearGradient
-              id="area-background-gradient"
-              from={background}
-              to={background2}
-            />
-            <LinearGradient
-              id="area-gradient"
-              from={accentColor}
-              to={accentColor}
-              toOpacity={0.1}
-            />
-            <GridRows
-              left={margin.left}
-              scale={equityScale}
-              width={innerWidth}
-              strokeDasharray="1,3"
-              stroke={accentColor}
-              strokeOpacity={0}
-              pointerEvents="none"
-            />
-            <GridColumns
-              top={margin.top}
-              scale={dateScale}
-              height={innerHeight}
-              strokeDasharray="1,3"
-              stroke={accentColor}
-              strokeOpacity={0.2}
-              pointerEvents="none"
-            />
-            <AreaClosed<EnrichedAccountSummaryData>
-              data={data}
-              x={(d) => dateScale(getDate(d)) ?? 0}
-              y={(d) => marginScale(getMargin(d)) ?? 0}
-              yScale={marginScale}
-              strokeWidth={1}
-              stroke="url(#area-gradient)"
-              fill="url(#area-gradient)"
-              curve={curveNatural}
-            />
-            <Bar
-              x={margin.left}
-              y={margin.top}
-              width={innerWidth}
-              height={innerHeight}
-              fill="transparent"
-              rx={14}
-              onTouchStart={handleTooltip}
-              onTouchMove={handleTooltip}
-              onMouseMove={handleTooltip}
-              onMouseLeave={hideTooltip}
-            />
-            {tooltipData && (
-              <g>
-                <Line
-                  from={{ x: tooltipLeft, y: margin.top }}
-                  to={{ x: tooltipLeft, y: innerHeight + margin.top }}
-                  stroke={accentColorDark}
-                  strokeWidth={2}
-                  pointerEvents="none"
-                  strokeDasharray="5,2"
-                />
-                <circle
-                  cx={tooltipLeft}
-                  cy={tooltipManteinanceMargin + 1}
-                  r={4}
-                  fill="black"
-                  fillOpacity={0.1}
-                  stroke="black"
-                  strokeOpacity={0.1}
-                  strokeWidth={2}
-                  pointerEvents="none"
-                />
-                <circle
-                  cx={tooltipLeft}
-                  cy={tooltipManteinanceMargin}
-                  r={4}
-                  fill={accentColorDark}
-                  stroke="white"
-                  strokeWidth={2}
-                  pointerEvents="none"
-                />
-              </g>
-            )}
-          </svg>
-          {tooltipData && (
-            <div>
-              <TooltipWithBounds
-                key={Math.random()}
-                top={(tooltipManteinanceMargin ?? 0) - 50}
-                left={tooltipLeft}
-                style={tooltipStyles}
-              >
-                {`${Math.round(getMargin(tooltipData) * 100) / 100}%`}
-              </TooltipWithBounds>
-              <Tooltip
-                top={innerHeight + margin.top - 14}
-                left={tooltipLeft}
-                style={{
-                  ...defaultStyles,
-                  minWidth: 72,
-                  textAlign: "center",
-                  transform: "translateX(-50%)",
-                }}
-              >
-                {formatDate(getDate(tooltipData))}
-              </Tooltip>
-            </div>
-          )}
-        </div>
-      );
-    }
 
     return (
       <div>
@@ -290,7 +131,7 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
           />
           <GridRows
             left={margin.left}
-            scale={equityScale}
+            scale={fundingScale}
             width={innerWidth}
             strokeDasharray="1,3"
             stroke={accentColor}
@@ -306,11 +147,11 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
             strokeOpacity={0.2}
             pointerEvents="none"
           />
-          <AreaClosed<EnrichedAccountSummaryData>
+          <AreaClosed<FundingRate>
             data={data}
             x={(d) => dateScale(getDate(d)) ?? 0}
-            y={(d) => equityUsdScale(getEquityUsdValue(d)) ?? 0}
-            yScale={equityUsdScale}
+            y={(d) => fundingScale(getFundingValue(d)) ?? 0}
+            yScale={fundingScale}
             strokeWidth={1}
             stroke="url(#area-gradient)"
             fill="url(#area-gradient)"
@@ -320,7 +161,7 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
             data={data}
             curve={curveMonotoneX}
             x={(dataPoint) => dateScale(getDate(dataPoint)) ?? 0}
-            y={(dataPoint) => equityScale(getEquityValue(dataPoint)) ?? 0}
+            y={(dataPoint) => fundingScale(getFundingValue(dataPoint)) ?? 0}
             stroke="#222"
             strokeWidth={1.5}
             strokeOpacity={0.8}
@@ -350,7 +191,7 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
               />
               <circle
                 cx={tooltipLeft}
-                cy={tooltipEquityUsd + 1}
+                cy={tooltipTop + 1}
                 r={4}
                 fill="black"
                 fillOpacity={0.1}
@@ -361,7 +202,7 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
               />
               <circle
                 cx={tooltipLeft}
-                cy={tooltipEquityUsd}
+                cy={tooltipTop}
                 r={4}
                 fill={accentColorDark}
                 stroke="white"
@@ -375,19 +216,11 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
           <div>
             <TooltipWithBounds
               key={Math.random()}
-              top={innerHeight + margin.top + 45}
+              top={tooltipTop}
               left={tooltipLeft - 50}
               style={tooltipStyles}
             >
-              {`${getEquityValue(tooltipData)} ₿`}
-            </TooltipWithBounds>
-            <TooltipWithBounds
-              key={Math.random()}
-              top={innerHeight + margin.top + 15}
-              left={tooltipLeft - 50}
-              style={tooltipStyles}
-            >
-              {`${Math.round(getEquityUsdValue(tooltipData) * 100) / 100} $`}
+              {`${Number(getFundingValue(tooltipData) * 10 ** 6).toFixed(3)} (*10-6)₿`}
             </TooltipWithBounds>
             <Tooltip
               top={innerHeight + margin.top - 15}
@@ -399,7 +232,7 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
                 transform: "translateX(-50%)",
               }}
             >
-              {formatDate(getDate(tooltipData))}
+              {formatDate(tooltipData.insertedAt)}
             </Tooltip>
           </div>
         )}
@@ -408,17 +241,11 @@ const Chart = withTooltip<AreaProps, TooltipProps>(
   },
 );
 
-export default function AreaChartHOC({
-  type,
-  data,
-}: {
-  type: AreaChartType;
-  data: EnrichedAccountSummaryData[];
-}) {
+export default function AreaChartHOC({ data }: { data: FundingRate[] }) {
   return (
     <ParentSize>
       {({ width, height }) => (
-        <Chart data={data} type={type} width={width} height={height} />
+        <Chart data={data} width={width} height={height} />
       )}
     </ParentSize>
   );

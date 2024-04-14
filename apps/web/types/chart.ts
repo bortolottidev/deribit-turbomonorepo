@@ -1,4 +1,5 @@
 import { EnrichedAccountSummaryData } from "./account-summary";
+import { FundingRate } from "./funding-rate";
 import { SpreadFuture } from "./future";
 import { Trade } from "./trade";
 
@@ -32,9 +33,7 @@ export type AreaProps = {
   width: number;
   height: number;
   margin?: Margin;
-  type: AreaChartType;
-  data: Array<EnrichedAccountSummaryData>;
+  data: Array<FundingRate>;
 };
 
-export type AreaChartType = "equity" | "margin";
 export type ThresholdChartType = "premium" | "%";

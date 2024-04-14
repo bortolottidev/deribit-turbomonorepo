@@ -13,19 +13,31 @@ import {
 import Header from "../components/header";
 import styles from "../page.module.css";
 import { Position, Trade } from "../../types/trade";
+import { FundingRate } from "../../types/funding-rate";
 
-async function getFutures() {
-  const entities = ["future", "account-summary", "position", "trade"] as const;
+// avoid cache
+export const dynamic = "force-dynamic";
+
+async function fetchData() {
+  const entities = [
+    "future",
+    "funding-rate",
+    "account-summary",
+    "position",
+    "trade",
+  ] as const;
   const fetchedData: {
     future: Future[];
     ["account-summary"]: AccountSummaryData[];
     position: Position[];
     trade: Trade[];
+    ["funding-rate"]: FundingRate[];
   } = {
     future: [],
     position: [],
     trade: [],
     ["account-summary"]: [],
+    ["funding-rate"]: [],
   };
   for (const entity of entities) {
     const res = await fetch("http://localhost:3010/" + entity);
@@ -51,7 +63,7 @@ const isNotAPerpetual = (future: Future): future is NotPerpetualFuture =>
   future.instrument !== "BTC-PERPETUAL";
 
 export default async function Page(): Promise<JSX.Element> {
-  const data = await getFutures();
+  const data = await fetchData();
   const perpetuals: Array<PerpetualFuture> = data.future.filter(isAPerpetual);
   // remap spread futures data
   const spreadFutures: Record<FUTURE_INSTRUMENT, SpreadFuture[]> = {};
@@ -143,8 +155,7 @@ export default async function Page(): Promise<JSX.Element> {
             gap: 20,
           }}
         >
-          <AreaChart type="equity" data={accountSummariesEnrichedWithUsd} />
-          <AreaChart type="margin" data={accountSummariesEnrichedWithUsd} />
+          <AreaChart type="equity" data={data["funding-rate"]} />
         </div>
         <div
           style={{
