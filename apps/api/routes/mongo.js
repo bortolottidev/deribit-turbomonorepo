@@ -48,7 +48,13 @@ const mongoCollectionApi = async (fastify, opts) => {
   });
 
   // map all entities and expose it
-  for (const entity of ["account", "future", "account-summary", "trade"]) {
+  for (const entity of [
+    "account",
+    "funding-rate",
+    "future",
+    "account-summary",
+    "trade",
+  ]) {
     fastify.get("/" + entity, async function (req, reply) {
       const collection = this.mongo.client.db("deribit").collection(entity);
 
@@ -59,6 +65,21 @@ const mongoCollectionApi = async (fastify, opts) => {
       }
     });
   }
+
+  fastify.get("/index-price", async function (req, reply) {
+    const collection = this.mongo.client.db("deribit").collection("future");
+
+    try {
+      const { lastTrade } = await collection
+        .find({ instrument: "BTC-PERPETUAL" })
+        .sort({ insertedAt: -1 })
+        .next();
+
+      return { indexPrice: lastTrade.indexPrice };
+    } catch (err) {
+      return err;
+    }
+  });
 
   fastify.get("/funding-collected", async function (req, reply) {
     const collection = this.mongo.client
