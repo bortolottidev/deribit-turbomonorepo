@@ -2,6 +2,8 @@ import Image from "next/image";
 import styles from "../page.module.css";
 import Header from "../components/header";
 import { Position, Trade } from "../../types/trade";
+import { FundingSum } from "../../types/funding";
+import Test from "./test";
 
 function Gradient({
   conic,
@@ -26,15 +28,22 @@ function Gradient({
   );
 }
 
-async function getData() {
+type FetchedData = {
+  position: Position[];
+  trade: Trade[];
+  fundingCollected: FundingSum | null;
+  indexPrice: number | null;
+};
+
+export const revalidate = 1 * 60; // revalidate the data at most every minute
+
+async function getData(): Promise<FetchedData> {
   const entities = ["position", "trade"] as const;
-  const fetchedData: {
-    position: Position[];
-    trade: Trade[];
-    fundingCollected: unknown;
-  } = {
+  const fetchedData: FetchedData = {
     trade: [],
     position: [],
+    fundingCollected: null,
+    indexPrice: null,
   };
 
   for (const entity of entities) {
@@ -52,13 +61,25 @@ async function getData() {
   }
   fetchedData.fundingCollected = await fundingCollected.json();
 
+  const indexPrice = await fetch("http://localhost:3010/index-price");
+  if (!indexPrice.ok) {
+    throw new Error("Failed to fetch index price");
+  }
+  fetchedData.indexPrice = (await indexPrice.json()).indexPrice;
+
   return fetchedData;
 }
 
 export default async function Page(): Promise<JSX.Element> {
   const data = await getData();
+  const fundingSum = data.fundingCollected?.totalInterestPlSum;
+  const dollarSum =
+    fundingSum && data.indexPrice
+      ? Math.floor(fundingSum * data.indexPrice)
+      : "-";
   return (
     <main className={styles.main}>
+      <Test data={data} />
       <Header />
 
       <div className={styles.hero}>
@@ -78,11 +99,11 @@ export default async function Page(): Promise<JSX.Element> {
           <div className="row gap-2">
             <div className={styles.dataDiv}>
               <h3 className="mb-1">Funding Collected</h3>
-              {data.fundingCollected.totalInterestPlSum} ₿
+              {fundingSum || "N/A"} ₿ ({dollarSum} $)
             </div>
             <div className={styles.dataDiv}>
               <h3 className="mb-1">Days</h3>
-              {data.fundingCollected.count}
+              {data.fundingCollected?.count || "N/A"}
             </div>
           </div>
           <table className={styles.table}>
