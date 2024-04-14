@@ -1,5 +1,6 @@
 import { Account } from "../../types/account";
 import { AccountChartData } from "./account-chart";
+import { TRACKING_BTC_USERNAME } from "./page";
 
 type Timestamp = number;
 type Username = string;
@@ -18,6 +19,7 @@ const insertedAtAscCompareFn = (
 
 export const getArrayAccountChartData = (
   accounts: Account[],
+  trackingBtcData: AccountChartData[],
 ): [AccountChartData[], Username[]] => {
   const usernames = new Set<Username>();
   const accountGroups = accounts.reduce<Record<Timestamp, UsernameAccumulator>>(
@@ -35,12 +37,12 @@ export const getArrayAccountChartData = (
 
   return [
     Object.entries(accountGroups)
-      .map(([insertedAt, accounts]) => ({
+      .map(([insertedAt, accounts], index) => ({
         insertedAt: Number(insertedAt),
         sum: [...usernames].reduce<UsernameEquityUsd>(
           //@ts-ignore - wtf?
           (acc, current) => acc + accounts[current]?.equityUsd,
-          0,
+          trackingBtcData[index][TRACKING_BTC_USERNAME].equityUsd || 0,
         ),
         ...accounts,
       }))

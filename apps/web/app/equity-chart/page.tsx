@@ -3,6 +3,12 @@ import styles from "../page.module.css";
 import { getArrayAccountChartData } from "./helper";
 import { Account } from "../../types/account";
 import Header from "../components/header";
+import { AddButton } from "./add-button";
+import { getSavedTracker } from "./actions";
+
+// avoid cache
+export const dynamic = "force-dynamic";
+export const TRACKING_BTC_USERNAME = "tracking_btc";
 
 async function getFutures() {
   const entities = ["account"] as const;
@@ -25,15 +31,33 @@ async function getFutures() {
 
 export default async function Page(): Promise<JSX.Element> {
   const data = await getFutures();
+  const btcTracker = await getSavedTracker();
 
-  const [accountsData, usernames] = getArrayAccountChartData(data.account);
+  let trackingBtcData = null;
+  const currentBtc = Number(btcTracker?.value);
+  if (isFinite(currentBtc)) {
+    trackingBtcData = data.account.map((acc) => ({
+      [TRACKING_BTC_USERNAME]: {
+        equityUsd: currentBtc * acc.indexPrice,
+      },
+      insertedAt: acc.insertedAt,
+    }));
+  }
 
-  const height = "50%";
+  const [accountsData, usernames] = getArrayAccountChartData(
+    data.account,
+    trackingBtcData,
+  );
+
+  // usernames + sum + btcTracker
+  const rows = Math.ceil((usernames.length + 1 + (btcTracker ? 1 : 0)) / 2);
+  const height = 100 / rows + "%";
   const width = "calc(50% - 10px)";
   const titleStyle = {
     textAlign: "center",
     margin: "3rem",
-  };
+  } as const;
+
   return (
     <main className={styles.main}>
       <Header />
@@ -70,6 +94,16 @@ export default async function Page(): Promise<JSX.Element> {
               />
             </div>
           ))}
+          {trackingBtcData && (
+            <div style={{ height, width }}>
+              <h2>Tracking {currentBtc} BTC</h2>
+              <AccountChart
+                data={trackingBtcData}
+                type="equity"
+                username={TRACKING_BTC_USERNAME}
+              />
+            </div>
+          )}
         </div>
         <h1 style={titleStyle}> Margin </h1>
         <div
@@ -92,6 +126,7 @@ export default async function Page(): Promise<JSX.Element> {
             </div>
           ))}
         </div>
+        <AddButton />
       </div>
     </main>
   );
