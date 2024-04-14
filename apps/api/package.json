@@ -8,7 +8,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "node --env-file=.env server.js",
+    "dev": "nodemon --env-file=.env server.js",
     "clean-docker": "docker stop test-mongo",
     "pretest": "docker run --rm -d -p 27017:27017 --name test-mongo mongo:5.0.0",
     "test": "node --env-file=test.env --test *.test.js",
@@ -24,6 +24,7 @@
     "fastify-plugin": "^4.5.1"
   },
   "devDependencies": {
+    "nodemon": "^3.1.0",
     "pino-pretty": "^10.3.1"
   }
 }
