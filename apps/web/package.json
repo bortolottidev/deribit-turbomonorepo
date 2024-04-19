@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.0.1",
     "@repo/ui": "workspace:*",
     "@visx/axis": "^3.8.0",
     "@visx/curve": "^3.3.0",

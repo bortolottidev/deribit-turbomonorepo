@@ -51,8 +51,35 @@ a {
   text-decoration: none;
 }
 
+button {
+  position: relative;
+  margin: 0;
+  padding: 1rem;
+  background-color: rgba(var(--callout-rgb), 0.5);
+  border: 1px solid rgba(var(--callout-border-rgb), 0.3);
+  border-radius: var(--border-radius);
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  font-weight: 700;
+  color: rgb(var(--foreground-rgb));
+  cursor: pointer;
+}
+button:hover {
+  border: 1px solid rgba(var(--callout-border-rgb), 0.6);
+  background-color: rgba(var(--callout-rgb), 1);
+}
+
+.flex,
 .row {
   display: flex;
+}
+
+.column {
+  flex-direction: column;
+}
+
+.wrap {
+  flex-wrap: wrap;
 }
 
 .gap-2 {
