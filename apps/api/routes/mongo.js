@@ -1,3 +1,4 @@
+import { clerkPlugin, getAuth } from "@clerk/fastify";
 import { DB_NAME, collections } from "../plugins/mongodb.js";
 
 const mongoCollectionApi = async (fastify, opts) => {
@@ -111,6 +112,44 @@ const mongoCollectionApi = async (fastify, opts) => {
       return err;
     }
   });
+
+  fastify.register(clerkPlugin);
+  fastify.post(
+    "/add-tracker",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["amount", "trackerNumber"],
+          properties: {
+            amount: { type: "string" },
+            trackerNumber: { type: "number" },
+          },
+        },
+      },
+    },
+    async function (req, reply) {
+      const auth = getAuth(req);
+      if (!auth.userId) {
+        return reply.code(403).send();
+      }
+
+      const collection = this.mongo.client.db("deribit").collection("tracker");
+      const { amount, trackerNumber } = req.body;
+      try {
+        const trackerId = `${auth.userId}_#0${trackerNumber}`;
+        await collection.updateOne(
+          { trackerId },
+          { $set: { amount } },
+          { upsert: true },
+        );
+
+        return { amount };
+      } catch (err) {
+        return err;
+      }
+    },
+  );
 };
 
 export default mongoCollectionApi;
