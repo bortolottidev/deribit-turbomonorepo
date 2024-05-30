@@ -8,11 +8,15 @@ import {
   UserButton,
   useUser,
 } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { cleanSavedTracker } from "../equity-chart/actions";
 
 export function ClerkButtonLogin(): JSX.Element {
   const { isSignedIn, isLoaded } = useUser();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   useEffect(() => {
     if (!isLoaded) {
       // wait
@@ -28,11 +32,11 @@ export function ClerkButtonLogin(): JSX.Element {
     cleanSavedTracker();
   }, [isSignedIn, isLoaded]);
 
-  return (
+  const renderWaitButton = () => <button>⌛</button>;
+
+  return isClient ? (
     <div>
-      <ClerkLoading>
-        <button>⌛</button>
-      </ClerkLoading>
+      <ClerkLoading>{renderWaitButton()}</ClerkLoading>
       <SignedOut>
         <SignInButton>
           <button>Sign in</button>
@@ -42,5 +46,7 @@ export function ClerkButtonLogin(): JSX.Element {
         <UserButton />
       </SignedIn>
     </div>
+  ) : (
+    renderWaitButton()
   );
 }
