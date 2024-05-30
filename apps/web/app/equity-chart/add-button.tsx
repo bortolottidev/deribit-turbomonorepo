@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { addNewTracker } from "./actions";
+import { useAuth } from "@clerk/nextjs";
 
 const SATOSHI_TO_BTC = 100_000_000;
 
@@ -13,8 +14,15 @@ export const AddButton = () => {
   const formRef = useRef<HTMLFormElement>(null);
   const { pending } = useFormStatus();
 
+  const { getToken } = useAuth();
+
   async function addNewTrackerAndCloseCb(formData: FormData) {
-    await addNewTracker(formData);
+    const token = await getToken();
+    if (!token) {
+      alert("non sei auth");
+      return;
+    }
+    await addNewTracker(formData, token);
     close();
     formRef.current!.reset();
   }

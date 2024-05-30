@@ -1,7 +1,8 @@
+"use client";
 import { Code } from "@repo/ui/code";
 import styles from "../page.module.css";
 import Link from "next/link";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { ClerkButtonLogin } from "./clerk-button";
 
 export default function Header(): JSX.Element {
   const deribitMetrics = "https://metrics.deribit.com/futures/BTC";
@@ -32,14 +33,7 @@ export default function Header(): JSX.Element {
       <div>
         <Link href="tables">To the tables!</Link>
       </div>
-      <SignedOut>
-        <SignInButton>
-          <button>Sign in</button>
-        </SignInButton>
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
+      <ClerkButtonLogin />
     </div>
   );
 }

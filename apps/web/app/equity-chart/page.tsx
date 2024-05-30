@@ -51,8 +51,8 @@ export default async function Page(): Promise<JSX.Element> {
 
   // usernames + sum + btcTracker
   const rows = Math.ceil((usernames.length + 1 + (btcTracker ? 1 : 0)) / 2);
-  const height = 100 / rows + "%";
-  const width = "calc(50% - 10px)";
+  const height = 400;
+  const width = "calc(50% - 1em)";
   const titleStyle = {
     textAlign: "center",
     margin: "3rem",
@@ -61,25 +61,9 @@ export default async function Page(): Promise<JSX.Element> {
   return (
     <main className={styles.main}>
       <Header />
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-        }}
-      >
+      <div className="flex column">
         <h1 style={titleStyle}> Money </h1>
-        <div
-          style={{
-            height: "100vh",
-            width: "100%",
-            display: "flex",
-            gap: 20,
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="flex wrap gap-2">
           <div style={{ height, width }}>
             <h2>Equity</h2>
             <AccountChart type="equity" data={accountsData} username={"sum"} />

@@ -19,7 +19,7 @@ const insertedAtAscCompareFn = (
 
 export const getArrayAccountChartData = (
   accounts: Account[],
-  trackingBtcData: AccountChartData[],
+  trackingBtcData: AccountChartData[] | null,
 ): [AccountChartData[], Username[]] => {
   const usernames = new Set<Username>();
   const accountGroups = accounts.reduce<Record<Timestamp, UsernameAccumulator>>(
@@ -42,7 +42,7 @@ export const getArrayAccountChartData = (
         sum: [...usernames].reduce<UsernameEquityUsd>(
           //@ts-ignore - wtf?
           (acc, current) => acc + accounts[current]?.equityUsd,
-          trackingBtcData[index][TRACKING_BTC_USERNAME].equityUsd || 0,
+          trackingBtcData?.[index]?.[TRACKING_BTC_USERNAME]?.equityUsd || 0,
         ),
         ...accounts,
       }))
